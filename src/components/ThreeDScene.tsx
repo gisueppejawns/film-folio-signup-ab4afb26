@@ -6,7 +6,7 @@ const ThreeDScene = () => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const objectRef = useRef<THREE.Mesh | null>(null);
+  const cameraModelRef = useRef<THREE.Group | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -31,62 +31,50 @@ const ThreeDScene = () => {
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xFFD700, 1); // CSULA Gold
+    const directionalLight = new THREE.DirectionalLight(0xFFD700, 1);
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
 
-    // Create initial ticket shape
-    const ticketGeometry = new THREE.BoxGeometry(2, 1, 0.1);
-    const ticketMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xFFD700, // CSULA Gold
-      specular: 0xFFFFFF, // White specular highlight
+    // Create vintage camera model
+    const cameraGroup = new THREE.Group();
+
+    // Main body
+    const bodyGeometry = new THREE.BoxGeometry(2, 1.5, 1);
+    const bodyMaterial = new THREE.MeshPhongMaterial({
+      color: 0xFFD700,
+      specular: 0xFFFFFF,
       shininess: 30,
     });
-    const ticket = new THREE.Mesh(ticketGeometry, ticketMaterial);
-    scene.add(ticket);
-    objectRef.current = ticket;
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    cameraGroup.add(body);
 
-    // Animation state
-    let currentShape = 'ticket';
-    let morphProgress = 0;
-    const morphDuration = 120; // frames
+    // Lens
+    const lensGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.8, 32);
+    const lensMaterial = new THREE.MeshPhongMaterial({
+      color: 0xFFD700,
+      specular: 0xFFFFFF,
+      shininess: 50,
+    });
+    const lens = new THREE.Mesh(lensGeometry, lensMaterial);
+    lens.rotation.x = Math.PI / 2;
+    lens.position.z = 0.9;
+    cameraGroup.add(lens);
+
+    // Viewfinder
+    const viewfinderGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    const viewfinder = new THREE.Mesh(viewfinderGeometry, bodyMaterial);
+    viewfinder.position.y = 0.75;
+    cameraGroup.add(viewfinder);
+
+    scene.add(cameraGroup);
+    cameraModelRef.current = cameraGroup;
 
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
 
-      if (objectRef.current) {
-        objectRef.current.rotation.x += 0.01;
-        objectRef.current.rotation.y += 0.01;
-
-        morphProgress++;
-        if (morphProgress >= morphDuration) {
-          morphProgress = 0;
-          
-          // Change shape
-          if (currentShape === 'ticket') {
-            const cameraGeometry = new THREE.CylinderGeometry(0.5, 0.8, 2, 32);
-            const newMesh = new THREE.Mesh(cameraGeometry, ticketMaterial);
-            scene.remove(objectRef.current);
-            scene.add(newMesh);
-            objectRef.current = newMesh;
-            currentShape = 'camera';
-          } else if (currentShape === 'camera') {
-            const sticksGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 32);
-            const newMesh = new THREE.Mesh(sticksGeometry, ticketMaterial);
-            scene.remove(objectRef.current);
-            scene.add(newMesh);
-            objectRef.current = newMesh;
-            currentShape = 'sticks';
-          } else {
-            const ticketGeometry = new THREE.BoxGeometry(2, 1, 0.1);
-            const newMesh = new THREE.Mesh(ticketGeometry, ticketMaterial);
-            scene.remove(objectRef.current);
-            scene.add(newMesh);
-            objectRef.current = newMesh;
-            currentShape = 'ticket';
-          }
-        }
+      if (cameraModelRef.current) {
+        cameraModelRef.current.rotation.y += 0.005;
       }
 
       renderer.render(scene, camera);
