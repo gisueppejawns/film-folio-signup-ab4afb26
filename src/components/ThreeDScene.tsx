@@ -31,15 +31,15 @@ const ThreeDScene = () => {
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0x7E69AB, 1);
+    const directionalLight = new THREE.DirectionalLight(0xFFD700, 1); // CSULA Gold
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
 
     // Create initial ticket shape
     const ticketGeometry = new THREE.BoxGeometry(2, 1, 0.1);
     const ticketMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x9b87f5,
-      specular: 0x9b87f5,
+      color: 0xFFD700, // CSULA Gold
+      specular: 0xFFFFFF, // White specular highlight
       shininess: 30,
     });
     const ticket = new THREE.Mesh(ticketGeometry, ticketMaterial);
